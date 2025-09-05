@@ -3,7 +3,7 @@ import jax
 import jax.numpy as jp
 import numpy as np
 
-print("\n================ Validating GPU... ================")
+print("================ Validating GPU... ================")
 try:
     # First check JAX default backend (should be GPU)
     backend = jax.default_backend()

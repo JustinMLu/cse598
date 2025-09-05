@@ -89,18 +89,14 @@ class UnitreeGo2Env(PipelineEnv):
     # Note: use jax.random functions to generate random numbers
     reset_q = self._init_q
     if self.randomize_initial_pos:
-        # generate some random deltas
-        random_pos_delta = jax.random.uniform(
-           key, shape=(12,), minval=-0.5, maxval=0.5
+
+        # generate some random position deltas
+        dof_pos_noise = jax.random.uniform(
+            key, shape=(self.sys.nq - 7,), minval=-10.0, maxval=10.0
         )
-        # apply randomized deltas & clip
-        randomized_dof_pos = jp.clip(
-            self._init_q[7:] + random_pos_delta, 
-            self.lowers, 
-            self.uppers
-        )
-        # update reset_q
-        reset_q = reset_q.at[7:].set(randomized_dof_pos)
+
+        # apply noise - first 7 are (xyz) then rotation quaternion
+        reset_q[7:] += dof_pos_noise
 
     
     pipeline_state = self.pipeline_init(reset_q, jp.zeros(self._nv))

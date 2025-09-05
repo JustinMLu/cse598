@@ -42,13 +42,13 @@ RUN pip install \
     numpy \
     matplotlib \
     mediapy \
-    mujoco==3.1.3 \
-    mujoco_mjx==3.1.3 \
+    mujoco==3.3.4 \
+    mujoco_mjx==3.3.4 \
     orbax-checkpoint \
     etils \
     ml_collections
-    
-# Install dependencies (2/2)
+
+# Install brax very, very carefully
 RUN pip install --no-dependencies \
     brax \
     jaxopt \

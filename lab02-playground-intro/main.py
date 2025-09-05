@@ -166,16 +166,5 @@ def loading_an_environment_and_agent():
     media.show_video(env.render(rollout, camera="track"), fps=1.0 / env.dt)
 
 if __name__ == "__main__":
-    print(
-        "\n"
-        "====================== NOTE TO GRADER ======================\n"
-        "============================================================\n"
-        "Next time, I promise I'll make the Jupyter Notebooks\n" \
-        "run on their own (to make grading easier).\n"
-        "But for now, please enjoy  b i g   m a i n   m e t h o d  👍\n"
-        "============================================================\n"
-        "============================================================\n"
-    )
-
     intro_to_mujoco_and_mjx()
 
