@@ -32,6 +32,9 @@ RUN apt-get update && apt-get install -y \
     libcudnn8-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# IMPORTANT: Create symlink for cuDNN headers
+RUN ln -s /usr/include/x86_64-linux-gnu/cudnn*.h /usr/local/cuda/include/
+
 # Add NVIDIA EGL driver configuration for MuJoCo rendering
 RUN mkdir -p /usr/share/glvnd/egl_vendor.d/ && \
     echo '{\n    "file_format_version" : "1.0.0",\n    "ICD" : {\n        "library_path" : "libEGL_nvidia.so.0"\n    }\n}' > /usr/share/glvnd/egl_vendor.d/10_nvidia.json
@@ -59,7 +62,7 @@ RUN pip install \
     ml_collections \
     etils \
     orbax-checkpoint
-    
+
 # Install orbax-checkpoint LAST To be extra safe w/ dependency conflicts
 RUN pip install orbax-checkpoint
 

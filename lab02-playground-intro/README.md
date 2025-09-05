@@ -9,7 +9,19 @@ To run locally, the host computer must have the following installed:
 - NVIDIA Container Toolkit
 
 ## Installation & Usage
-### 1. Build the Docker image
+### Initialize Git LFS
+Robot mesh assets (`.obj`) are tracked & stored using **Git LFS**, so pulling them is required before starting.
+
+```bash
+# Install Git LFS (if you don't have it)
+sudo apt-get install git-lfs
+
+# Pull assets
+git lfs install
+git lfs pull
+```
+
+### Build the Docker image
 ```bash
 # Will take awhile
 docker compose -f docker-compose-deploy.yml build lab02

@@ -92,8 +92,9 @@ def intro_to_mujoco_and_mjx():
     TASK 1: Describe in your own words how jax random numbers work. What is the purpose of `jax.random.split`? 
     (5 pts)
 
-    ANSWER: Random numbers in JAX, like all random numbers in code, are really just pseudorandom numbers.
-            JAX specifically uses PRNGKey to generate random numbers.
+    ANSWER: 
+    Random numbers in JAX, like all random numbers in code, are really just pseudorandom numbers.
+    JAX specifically uses PRNGKey to generate random numbers.
             
             `jax.random.split` is JAX's way of generating new random number seeds using an old one.
             Due to the pseudorandom nature of random num. generation, you can never reuse a seed.
