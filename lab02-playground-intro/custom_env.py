@@ -119,7 +119,7 @@ class UnitreeGo2Env(PipelineEnv):
     # kick
     push_interval = 100
     kick_theta = jax.random.uniform(kick_noise_2, maxval=2 * jp.pi)
-    # TODO(student): Impliment a "kick" to the robot every push_interval steps along the xy-plane.
+    # TODO(student): Implement a "kick" to the robot every push_interval steps along the xy-plane.
     # you may use kick_theta to determine the direction of the kick.
     # Be sure to also add the final "kick" to the "state" dictionary. 
     # HINTS: 
