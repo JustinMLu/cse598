@@ -1,1 +1,32 @@
 # [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=55&pause=1000&color=FFCB05&center=true&width=800&height=100&lines=Lab+02:+Playground+Intro)](https://git.io/typing-svg)
+
+My implementation of Lab 02 that can be run locally on a GPU-equipped computer with CUDA 12+, without having to struggle with Colab and its many, many flaws
+
+## Requirements
+To run locally, the host computer must have the following installed:
+- Docker
+- CUDA 12.x
+- NVIDIA Container Toolkit
+
+## Installation & Usage
+### 1. Build the Docker image
+```bash
+# Will take awhile
+docker compose -f docker-compose-deploy.yml build lab02
+```
+
+### Run main.py (instead of the Jupyter Notebook)
+
+```bash
+# Default command is just 'python3 main.py'
+docker compose -f docker-compose-deploy.yml up lab02
+```
+
+### Open a shell inside the Container (without running main.py)
+```bash
+# Run bash inside container
+docker compose -f docker-compose-deploy.yml run --rm lab02 bash
+
+# (Inside container): now you can manually run main.py
+python3 main.py
+```

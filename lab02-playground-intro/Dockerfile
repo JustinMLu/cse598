@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     git \
     xvfb \
+    libcudnn8-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Add NVIDIA EGL driver configuration for MuJoCo rendering
@@ -39,13 +40,15 @@ RUN mkdir -p /usr/share/glvnd/egl_vendor.d/ && \
 RUN python3 -m pip install --upgrade pip
 
 # Install JAX with CUDA 12 support
-RUN pip install --upgrade "jax[cuda12-pip]"
+RUN pip install --upgrade "jax[cuda12-pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
 # Install OpenGL dependencies for MuJoCo
 RUN pip install PyOpenGL PyOpenGL_accelerate
 
 # Install core dependencies
 RUN pip install \
+    PyOpenGL \
+    PyOpenGL_accelerate \
     numpy \
     matplotlib \
     mediapy \
@@ -56,12 +59,12 @@ RUN pip install \
     ml_collections \
     etils \
     orbax-checkpoint
+    
+# Install orbax-checkpoint LAST To be extra safe w/ dependency conflicts
+RUN pip install orbax-checkpoint
 
 # Set working directory
-WORKDIR /workspace
+WORKDIR /lab02-playground-intro
 
 # Copy your project files
-COPY . /workspace/
-
-# Default command
-CMD ["python3", "main.py"]
+COPY . /lab02-playground-intro/

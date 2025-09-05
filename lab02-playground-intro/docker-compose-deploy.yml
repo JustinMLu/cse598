@@ -5,7 +5,7 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-    runtime: nvidia
+    # runtime: nvidia # apparently this is legacy now?
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics
@@ -14,13 +14,13 @@ services:
       - XLA_FLAGS=--xla_gpu_triton_gemm_any=True
       - DISPLAY=${DISPLAY}
     volumes:
-      - .:/workspace
+      - .:/lab02-playground-intro
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - type: tmpfs
         target: /tmp
         tmpfs:
           size: 2G
-    working_dir: /workspace
+    working_dir: /lab02-playground-intro
     stdin_open: true
     tty: true
     deploy:
@@ -30,5 +30,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    # Override the default command to keep container running
-    command: bash
+
+    # should change this to run main.py later for the grader
+    command: ["python3", "main.py"]
