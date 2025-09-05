@@ -1,19 +1,24 @@
-FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+# Official NVIDIA JAX container (CUDA 12.4.1, Ubuntu 22.04)
+FROM nvcr.io/nvidia/jax:24.04-py3
 
-# get rid of them gosh darn INTERACTIVE PROMPTS
+# Set non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Mujoco + JAX env variables for GPU acceleration
+# Mujoco + JAX env variables
 ENV MUJOCO_GL=egl
 ENV XLA_PYTHON_CLIENT_PREALLOCATE=false
 ENV XLA_FLAGS="--xla_gpu_triton_gemm_any=True"
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    python3-dev \
+
+# Update apt inside container
+RUN apt-get update
+
+# Install dependencies & OpenGL libraries
+# Not all of these may be needed but I am too scared to remove any of them
+RUN apt-get install -y \
     ffmpeg \
+    git \
+    wget \
     libgl1-mesa-glx \
     libgl1-mesa-dev \
     libegl1-mesa \
@@ -26,48 +31,34 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender-dev \
     libgomp1 \
-    wget \
-    git \
     xvfb \
-    libcudnn8-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# IMPORTANT: Create symlink for cuDNN headers
-RUN ln -s /usr/include/x86_64-linux-gnu/cudnn*.h /usr/local/cuda/include/
-
-# Add NVIDIA EGL driver configuration for MuJoCo rendering
-RUN mkdir -p /usr/share/glvnd/egl_vendor.d/ && \
-    echo '{\n    "file_format_version" : "1.0.0",\n    "ICD" : {\n        "library_path" : "libEGL_nvidia.so.0"\n    }\n}' > /usr/share/glvnd/egl_vendor.d/10_nvidia.json
-
-# Upgrade pip and install Python packages
+# Upgrade pip before we proceed
 RUN python3 -m pip install --upgrade pip
 
-# Install JAX with CUDA 12 support
-RUN pip install --upgrade "jax[cuda12-pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
-
-# Install OpenGL dependencies for MuJoCo
-RUN pip install PyOpenGL PyOpenGL_accelerate
-
-# Install core dependencies
+# Install Python packages
 RUN pip install \
-    PyOpenGL \
-    PyOpenGL_accelerate \
     numpy \
     matplotlib \
     mediapy \
-    mujoco \
-    mujoco_mjx \
-    brax \
-    flax \
-    ml_collections \
+    mujoco==3.1.3 \
+    mujoco_mjx==3.1.3 \
+    orbax-checkpoint \
     etils \
-    orbax-checkpoint
+    ml_collections
+    
+# Install dependencies (2/2)
+RUN pip install --no-dependencies \
+    brax \
+    jaxopt \
+    jinja2 \
+    markupsafe
 
-# Install orbax-checkpoint LAST To be extra safe w/ dependency conflicts
-RUN pip install orbax-checkpoint
+# Install Jupyter & expose port
+RUN pip install jupyterlab
+EXPOSE 8888
 
-# Set working directory
+# Copy into container
 WORKDIR /lab02-playground-intro
-
-# Copy your project files
 COPY . /lab02-playground-intro/

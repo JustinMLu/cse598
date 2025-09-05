@@ -85,7 +85,7 @@ def intro_to_mujoco_and_mjx():
     print("Saving video to intro_simulation_gpu.mp4")
     media.write_video('intro_simulation_gpu.mp4', frames, fps=framerate)
 
-    # Close render (EXTREMELY IMPORTANT)
+    # Close render
     renderer.close()
 
     """
@@ -96,12 +96,12 @@ def intro_to_mujoco_and_mjx():
     Random numbers in JAX, like all random numbers in code, are really just pseudorandom numbers.
     JAX specifically uses PRNGKey to generate random numbers.
             
-            `jax.random.split` is JAX's way of generating new random number seeds using an old one.
-            Due to the pseudorandom nature of random num. generation, you can never reuse a seed.
-            
-            Therefore, you call 'jax.random.split' to turn that one seed into multiple subkeys, 
-            use the first subkey, save the rest for later, and now your pseudo-random-ness is kept
-            clean, as close to random as possible, and 100% reproducible.
+    `jax.random.split` is JAX's way of generating new random number seeds using an old one.
+    Due to the pseudorandom nature of random num. generation, you can never reuse a seed.
+    
+    Therefore, you call 'jax.random.split' to turn that one seed into multiple subkeys, 
+    use the first subkey, save the rest for later, and now your pseudo-random-ness is kept
+    clean, as close to random as possible, and 100% reproducible.
     """
     # ======================================================================
     # TODO (student): given the name of a geom, access its color
@@ -119,7 +119,7 @@ def intro_to_mujoco_and_mjx():
     geom_color = mj_model.geom_rgba[geom_id]
 
     answer = geom_color
-    print("Answer =", answer) # [0. 1. 0. 1.] AKA full green, alpha=1
+    print("Answer = ", answer) # [0. 1. 0. 1.] AKA full green, alpha=1
     # ======================================================================
 
 def loading_an_environment_and_agent():
@@ -142,6 +142,28 @@ def loading_an_environment_and_agent():
     Similarly, we can rollout an entire trajectory in our environment using the `jit_step()` function. 
     (10 pts) 
     """
+
+    state = jit_reset(jax.random.PRNGKey(0))
+
+    rollout = [state.pipeline_state]
+
+    # grab a trajectory
+    for i in range(500):
+        
+        # TODO(student): Sample the ZERO action for the robot. For now, just create a `jax.array` 
+        # with the same size as the number of actuators. Set each element of the array to be 0. 
+        # hint 1: you can use the `env.sys.nu` property to get the number of actuators/motors
+        # hint 2: the `jp` module is an alias for jax.numpy which has similar functionality to 
+        # numpy (i.e. jp.zeros, jp.ones, jp.array, etc)
+        action = jp.zeros(12) # Unitree Go2 is 12-DOF
+        
+        # TODO(student): Take a "jit_step" in the environment. See the custom_env.py file for details 
+        # on the arguments the function takes and what it returns. 
+        state = jit_step(state=state, action=action) # Literally just our zero action over and over
+        
+        rollout.append(state.pipeline_state)
+
+    media.show_video(env.render(rollout, camera="track"), fps=1.0 / env.dt)
 
 if __name__ == "__main__":
     print(
