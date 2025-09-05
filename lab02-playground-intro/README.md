@@ -1,4 +1,4 @@
-# [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=55&pause=1000&color=FFCB05&center=true&width=800&height=100&lines=Lab+02:+Playground+Intro)](https://git.io/typing-svg)
+# Lab 02 - Playground Intro
 
 My implementation of Lab 02 that can be run locally on a GPU-equipped computer with CUDA 12+, without having to struggle with Colab and its many, many flaws
 
