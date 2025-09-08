@@ -1,5 +1,5 @@
-# Official NVIDIA JAX container (CUDA 12.4.1, Ubuntu 22.04)
-FROM nvcr.io/nvidia/jax:24.04-py3
+# Official NVIDIA JAX container (CUDA 12.8, Ubuntu 24.04.1 LTS)
+FROM nvcr.io/nvidia/jax:25.04-py3
 
 # Set non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
@@ -14,14 +14,19 @@ ENV XLA_FLAGS="--xla_gpu_triton_gemm_any=True"
 RUN apt-get update
 
 # Install dependencies & OpenGL libraries
-# Not all of these may be needed but I am too scared to remove any of them
+
+# REPLACEMENTS FOR BLACKWELL:
+# libgl1-mesa-glx   ->   libgl1 & libglx-mesa0
+# libel1-mesa       ->   libegl1
+
 RUN apt-get install -y \
     ffmpeg \
     git \
     wget \
-    libgl1-mesa-glx \
+    libgl1 \
+    libglx-mesa0 \
     libgl1-mesa-dev \
-    libegl1-mesa \
+    libegl1 \
     libegl1-mesa-dev \
     libgles2-mesa-dev \
     libglfw3 \
