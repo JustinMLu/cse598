@@ -138,15 +138,13 @@ class UnitreeGo2Env(PipelineEnv):
     #   3. use self._kick_vel to determine velocity
     #   4. state.info['step'] gives the step of the sim, 
     #   5. Use state = state.tree_replace({'pipeline_state.qvel': qvel})
-    kick = jp.array([0, 0]) # kick vel in x and y direction
+    # ===== IMPLEMENT HERE =====
+    # Check if we should apply a kick (using functional approach)
+    should_kick = (state.info['step'] % push_interval) == 0
     kick = jp.array([
         jp.where(should_kick, jp.cos(kick_theta) * self._kick_vel, 0.0),
         jp.where(should_kick, jp.sin(kick_theta) * self._kick_vel, 0.0)
     ])
-
-    # ===== IMPLEMENT HERE =====
-    # Check if we should apply a kick (using functional approach)
-    should_kick = (state.info['step'] % push_interval) == 0
 
     # get current velocity
     qvel = state.pipeline_state.qd
