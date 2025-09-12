@@ -67,8 +67,6 @@ class UnitreeGo2Env(PipelineEnv):
     self._obs_noise = obs_noise
     self._kick_vel = kick_vel
     
-    
-    
     self._init_q = jp.array(sys.mj_model.keyframe(keyframe_name).qpos)
     self._default_pose = sys.mj_model.keyframe(keyframe_name).qpos[7:]
     
@@ -122,12 +120,11 @@ class UnitreeGo2Env(PipelineEnv):
 
 
 
+  
   def step(self, state: State, action: jax.Array) -> State:  # pytype: disable=signature-mismatch
     rng, cmd_rng, kick_noise_2 = jax.random.split(state.info['rng'], 3)
 
-
-
-    # kick in a random direction
+    # kick
     push_interval = 100
     kick_theta = jax.random.uniform(kick_noise_2, maxval=2 * jp.pi)
     # TODO(student): Implement a "kick" to the robot every push_interval steps along the xy-plane.
@@ -141,34 +138,31 @@ class UnitreeGo2Env(PipelineEnv):
     #   3. use self._kick_vel to determine velocity
     #   4. state.info['step'] gives the step of the sim, 
     #   5. Use state = state.tree_replace({'pipeline_state.qvel': qvel})
+    kick = jp.array([0, 0]) # kick vel in x and y direction
+    kick = jp.array(
+       [jp.cos(kick_theta) * self._kick_vel, 
+        jp.sin(kick_theta) * self._kick_vel]
+    )
+
+    # ===== IMPLEMENT HERE =====
+    # Check if we should apply a kick (using functional approach)
+    should_kick = (state.info['step'] % push_interval) == 0
+
+    # get current velocity
+    qvel = state.pipeline_state.qd
+
+    # use qvel.at[idx].set(...) to actually make the change persist
+    qvel = qvel.at[0].set(jp.where(should_kick, kick[0], qvel[0]))
+    qvel = qvel.at[1].set(jp.where(should_kick, kick[1], qvel[1]))
+
+    # update using method from hint 5
+    state = state.tree_replace({'pipeline_state.qvel': qvel})
+    # ==========================
 
     # physics step
     motor_targets = self._default_pose + action * self._action_scale
     motor_targets = jp.clip(motor_targets, self.lowers, self.uppers)
     pipeline_state = self.pipeline_step(state.pipeline_state, motor_targets)
-
-    # Choos when to apply
-    kick_mask = (state.info['step'] % push_interval) == 0
-    kick = jp.array([
-      jp.cos(kick_theta) * self._kick_vel,
-      jp.sin(kick_theta) * self._kick_vel
-    ])
-
-    # kick = jp.array([0, 0]) # kick vel in x and y direction
-    # kick = jp.array([jp.cos(kick_theta), jp.sin(kick_theta)])
-    # impliment  here
-
-    # Get current qvel
-    qvel = state.pipeline_state.qvel
-    qvel = jp.where(
-      kick_mask,
-      qvel.at[0:2].set(kick),
-      qvel
-    )
-
-    # Update pipeline state
-    pipeline_state = pipeline_state.replace(qvel=qvel)
-
     x, xd = pipeline_state.x, pipeline_state.xd
 
     # observation data
@@ -207,6 +201,7 @@ class UnitreeGo2Env(PipelineEnv):
         pipeline_state=pipeline_state, obs=obs, reward=reward, done=done
     )
     return state
+
 
   def _get_obs(
       self,
