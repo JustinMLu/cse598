@@ -127,7 +127,7 @@ class UnitreeGo2Env(PipelineEnv):
 
 
 
-    # kick
+    # kick in a random direction
     push_interval = 100
     kick_theta = jax.random.uniform(kick_noise_2, maxval=2 * jp.pi)
     # TODO(student): Implement a "kick" to the robot every push_interval steps along the xy-plane.
@@ -141,14 +141,34 @@ class UnitreeGo2Env(PipelineEnv):
     #   3. use self._kick_vel to determine velocity
     #   4. state.info['step'] gives the step of the sim, 
     #   5. Use state = state.tree_replace({'pipeline_state.qvel': qvel})
-    kick = jp.array([0, 0]) # kick vel in x and y direction
-    kick = jp.array([jp.cos(kick_theta), jp.sin(kick_theta)])
-    # impliment here
 
     # physics step
     motor_targets = self._default_pose + action * self._action_scale
     motor_targets = jp.clip(motor_targets, self.lowers, self.uppers)
     pipeline_state = self.pipeline_step(state.pipeline_state, motor_targets)
+
+    # Choos when to apply
+    kick_mask = (state.info['step'] % push_interval) == 0
+    kick = jp.array([
+      jp.cos(kick_theta) * self._kick_vel,
+      jp.sin(kick_theta) * self._kick_vel
+    ])
+
+    # kick = jp.array([0, 0]) # kick vel in x and y direction
+    # kick = jp.array([jp.cos(kick_theta), jp.sin(kick_theta)])
+    # impliment  here
+
+    # Get current qvel
+    qvel = state.pipeline_state.qvel
+    qvel = jp.where(
+      kick_mask,
+      qvel.at[0:2].set(kick),
+      qvel
+    )
+
+    # Update pipeline state
+    pipeline_state = pipeline_state.replace(qvel=qvel)
+
     x, xd = pipeline_state.x, pipeline_state.xd
 
     # observation data
@@ -170,6 +190,7 @@ class UnitreeGo2Env(PipelineEnv):
     state.info['last_vel'] = joint_vel
     state.info['step'] += 1
     state.info['rng'] = rng
+    state.info['kick'] = kick
 
     # reset the step counter when done
     state.info['step'] = jp.where(
