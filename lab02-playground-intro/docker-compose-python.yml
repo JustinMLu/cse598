@@ -4,7 +4,7 @@ services:
   lab02:
     build: 
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ${GPU_ARCH:+Dockerfile.blackwell}${GPU_ARCH:-Dockerfile}
     
     runtime: nvidia
     

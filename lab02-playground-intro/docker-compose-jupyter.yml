@@ -5,7 +5,7 @@ services:
     runtime: nvidia
     build: 
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ${GPU_ARCH:+Dockerfile.blackwell}${GPU_ARCH:-Dockerfile}
     
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
