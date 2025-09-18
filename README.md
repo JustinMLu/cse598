@@ -1,6 +1,6 @@
 # CSE 598 - Action and Perception
 
-#### Author: ```Justin Lu | lujust@umich.edu | UMID#85477350```
+#### Author: ```Justin Lu | lujust@umich.edu```
 
 ## Table of Contents
 
