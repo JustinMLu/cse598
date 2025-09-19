@@ -38,14 +38,17 @@ RUN python3 -m pip install --upgrade pip
 
 # Install Python packages
 RUN pip install \
-    numpy \
+    "numpy<2.0" \
     matplotlib \
     mediapy \
     mujoco==3.3.4 \
     mujoco_mjx==3.3.4 \
     orbax-checkpoint \
     etils \
-    ml_collections
+    ml_collections \
+    opencv-python \
+    noise
+
 
 # Install brax very, very carefully
 RUN pip install --no-dependencies \

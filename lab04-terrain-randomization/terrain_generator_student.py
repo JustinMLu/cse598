@@ -157,7 +157,26 @@ class TerrainGenerator:
         @param stair_nums   number of stairs
         '''
         
-        print("Not Implimented: AddStairs")
+        for i in range(stair_nums):
+            # find per-stair position
+            stair_x = init_pos[0] + i * width
+            stair_y = init_pos[1]
+            stair_z = init_pos[2] + (i + 1) * height
+            
+            if yaw != 0.0:
+                # relative to init_pos
+                rel_x = stair_x - init_pos[0]
+                rel_y = stair_y - init_pos[1]
+                rotated_x, rotated_y = rot2d(rel_x, rel_y, yaw)
+                stair_x = init_pos[0] + rotated_x
+                stair_y = init_pos[1] + rotated_y
+            
+            position = [stair_x, stair_y, stair_z]
+            euler = [0.0, 0.0, yaw]
+            size = [width, length, (i + 1) * height * 2] 
+            
+            # create stair
+            self.AddBox(position=position, euler=euler, size=size)
 
     def AddRoughGround(self,
                        init_pos=[1.0, 0.0, 0.0],
@@ -184,7 +203,54 @@ class TerrainGenerator:
         @param separation_rand  [rand_sep_x, rand_sep_y] random range of separation
         '''
         
-        print("Not Implimented: AddRoughGround")
+        for i in range(nums[0]):  # Loop over x
+            for j in range(nums[1]):  # Loop over y
+
+                # base box pos
+                x_init = i * (box_size[0] + separation[0])
+                y_init = j * (box_size[1] + separation[1])
+                z_init = 0.0
+                
+                # randomize separation range
+                rand_sep_x = np.random.uniform(-separation_rand[0], separation_rand[0])
+                rand_sep_y = np.random.uniform(-separation_rand[1], separation_rand[1])
+                
+                local_pos = [x_init + rand_sep_x, y_init + rand_sep_y, z_init]
+                
+                # ror local position by the overall euler angles
+                if any(e != 0.0 for e in euler):
+                    local_pos = rot3d(np.array(local_pos), np.array(euler))
+                
+                # calculate final pos
+                final_pos = [
+                    init_pos[0] + local_pos[0],
+                    init_pos[1] + local_pos[1], 
+                    init_pos[2] + local_pos[2] + box_size[2]/2  # Offset by half height so box sits on ground
+                ]
+                
+                # randomize size
+                rand_size = [
+                    box_size[0] + np.random.uniform(-box_size_rand[0], box_size_rand[0]),
+                    box_size[1] + np.random.uniform(-box_size_rand[1], box_size_rand[1]),
+                    box_size[2] + np.random.uniform(-box_size_rand[2], box_size_rand[2])
+                ]
+                
+                # randomize rotation
+                rand_euler = [
+                    box_euler[0] + np.random.uniform(-box_euler_rand[0], box_euler_rand[0]),
+                    box_euler[1] + np.random.uniform(-box_euler_rand[1], box_euler_rand[1]),
+                    box_euler[2] + np.random.uniform(-box_euler_rand[2], box_euler_rand[2])
+                ]
+                
+                # get net rotation too
+                final_euler = [
+                    euler[0] + rand_euler[0],
+                    euler[1] + rand_euler[1], 
+                    euler[2] + rand_euler[2]
+                ]
+                
+                # generate box subterrain element
+                self.AddBox(position=final_pos, euler=final_euler, size=rand_size)
 
     def AddPerlinHeighField(
             self,

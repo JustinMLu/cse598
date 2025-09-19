@@ -41,4 +41,6 @@ services:
     
     # Validate JAX & start Jupyter Notebook at http://localhost:8888
     command: >
-      sh -c "python3 validate_jax.py && jupyter trust 02_lab_student.ipynb && jupyter lab --ip=0.0.0.0 --allow-root --no-browser --NotebookApp.token=''"
+      sh -c "python3 validate_jax.py && \
+      jupyter trust 04_lab_student.ipynb && \
+      jupyter lab --ip=0.0.0.0 --allow-root --no-browser --NotebookApp.token=''"
