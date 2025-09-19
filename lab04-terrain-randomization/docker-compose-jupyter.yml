@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  lab02:
+  lab04:
     runtime: nvidia
     build: 
       context: .
-      dockerfile: ${GPU_ARCH:+Dockerfile.blackwell}${GPU_ARCH:-Dockerfile}
+      dockerfile: Dockerfile
     
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
@@ -17,7 +17,7 @@ services:
       - LD_LIBRARY_PATH=""
     
     volumes:
-      - .:/lab02-playground-intro
+      - .:/lab04-terrain-randomization
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - type: tmpfs
         target: /tmp
@@ -27,7 +27,7 @@ services:
     ports:
       - "8888:8888" # Map host port to container port
 
-    working_dir: /lab02-playground-intro
+    working_dir: /lab04-terrain-randomization
     stdin_open: true
     tty: true
     
@@ -39,9 +39,6 @@ services:
               count: 'all'
               capabilities: [gpu]
     
-    # # Validate JAX & start Jupyter Notebook at http://localhost:8888
-    # command: >
-    #   sh -c "python3 validate_jax.py && jupyter trust 02_lab_student.ipynb && jupyter lab --ip=0.0.0.0 --allow-root --no-browser --NotebookApp.token=''"
-
+    # Validate JAX & start Jupyter Notebook at http://localhost:8888
     command: >
-      sh -c "python3 validate_jax.py && tail -f /dev/null"
+      sh -c "python3 validate_jax.py && jupyter trust 02_lab_student.ipynb && jupyter lab --ip=0.0.0.0 --allow-root --no-browser --NotebookApp.token=''"
