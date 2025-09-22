@@ -147,7 +147,7 @@ class TerrainGenerator:
                   length=1.5,
                   stair_nums=10):
         '''
-        TODO(student): Impliment this function
+        TODO(student): Impliment this function (IMPLEMENTED - 1/5)
         
         @param init_pos     [start_x, start_y, start_z] position of the first stair
         @param yaw          rotation of stairs around z axis [rad]
@@ -190,7 +190,7 @@ class TerrainGenerator:
                        separation_rand=[0.05, 0.05]):
         
         '''
-        TODO(student): Impliment this function
+        TODO(student): Impliment this function (IMPLEMENTED - 2/5)
         
         @param init_pos         [start_x, start_y, start_z] position of the first box
         @param euler            rotation of the whole rough ground around x, y, z axis
@@ -217,15 +217,15 @@ class TerrainGenerator:
                 
                 local_pos = [x_init + rand_sep_x, y_init + rand_sep_y, z_init]
                 
-                # ror local position by the overall euler angles
-                if any(e != 0.0 for e in euler):
+                # rotate if a nonzero box euler angle is given
+                if euler[0] != 0.0 or euler[1] != 0.0 or euler[2] != 0.0:
                     local_pos = rot3d(np.array(local_pos), np.array(euler))
                 
                 # calculate final pos
                 final_pos = [
                     init_pos[0] + local_pos[0],
                     init_pos[1] + local_pos[1], 
-                    init_pos[2] + local_pos[2] + box_size[2]/2  # Offset by half height so box sits on ground
+                    init_pos[2] + local_pos[2]
                 ]
                 
                 # randomize size
@@ -327,9 +327,42 @@ class TerrainGenerator:
             image_scale=[1.0, 1.0],  # reduce image resolution
             invert_gray=False):
         
-        print("Not Implimented: AddHeighFieldFromImage")
-        
+        if input_img is None:
+            print("Error: No input image provided for AddHeighFieldFromImage.")
+            return
 
+        # load image
+        img = cv2.imread(input_img)
+        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        # rescale image to specified scales
+        if image_scale[0] != 1.0 or image_scale[1] != 1.0:
+            new_width = int(gray_img.shape[1] * image_scale[0])
+            new_height = int(gray_img.shape[0] * image_scale[1])
+            gray_img = cv2.resize(gray_img, (new_width, new_height), interpolation=cv2.INTER_AREA)
+
+        # invert grayscale if specified
+        if invert_gray:
+            gray_img = 255 - gray_img
+
+        # save processed heightfield img
+        hfield_save_path = os.path.join(os.path.dirname(self.output_scene_path), output_hfield_image)
+        cv2.imwrite(hfield_save_path, gray_img)
+        
+        # create the heightfield asset in the XML
+        hfield_name = "hfield_from_image"
+        hfield = xml_et.SubElement(self.asset, "hfield")
+        hfield.attrib["name"] = hfield_name
+        hfield.attrib["file"] = os.path.basename(hfield_save_path)
+        hfield.attrib["size"] = list_to_str([size[0] / 2.0, size[1] / 2.0, height_scale, negative_height])
+
+        # create worldbody geom to place heightfield
+        geom = xml_et.SubElement(self.worldbody, "geom")
+        geom.attrib["type"] = "hfield"
+        geom.attrib["hfield"] = hfield_name
+        geom.attrib["pos"] = list_to_str(position)
+        quat = euler_to_quat(euler[0], euler[1], euler[2])
+        geom.attrib["quat"] = list_to_str(quat)
         
     def CustomTerrain(self):
         '''
