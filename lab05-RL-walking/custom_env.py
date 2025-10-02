@@ -226,9 +226,8 @@ class GoogleBarkourEnv(PipelineEnv):
 
     # reward
     rewards = {
-        # TODO(student): Impliment and call tracking rewards below
-        # 'tracking_lin_vel': None, # TODO(student): Call proper function with needed args
-        # 'tracking_ang_vel': None, # TODO(student): Call proper function with needed args
+        'tracking_lin_vel': self._reward_tracking_lin_vel(x, xd, state.info['command']),
+        'tracking_ang_vel': self._reward_tracking_ang_vel(x, xd, state.info['command']),
         'lin_vel_z': self._reward_lin_vel_z(xd),
         'ang_vel_xy': self._reward_ang_vel_xy(xd),
         'orientation': self._reward_orientation(x),
@@ -305,30 +304,29 @@ class GoogleBarkourEnv(PipelineEnv):
 
   # ------------ reward functions ----------------
   def _reward_tracking_lin_vel(
-      self, 
-      #TODO(student): add any extra params you need here
+      self, x: Transform, xd: Motion, command
   ) -> jax.Array:
-    # TODO(student): Impliment this function. It should return the linear tracking reward. 
-    # it should be computed as exp(-delta^2/sigma) where delta is L2 error between the commanded and actual xy velocity
-    # and sigma is defined in the reward config. Feel free to add extra parameters to this function as needed. 
-    # NOTE: The commmands are defined in the BODY frame... make sure you're comparing apples to apples!
-    # HINT: Look at the other reward functions for inspiration!
-      
-    # Tracking of linear velocity commands (xy axes)
-    return None
+    
+    # Get LINEAR velocity vec
+    body_vel = math.rotate(xd.vel[0], math.quat_inv(x.rot[0]))
+    
+    # Calculate XY velocity tracking error
+    tracking_error = jp.linalg.norm(body_vel[:2] - command[:2])
+
+    # Return Gaussian reward function
+    return jp.exp(-jp.square(tracking_error) / self.reward_config.rewards.tracking_sigma)
 
   def _reward_tracking_ang_vel(
-      self, 
-      #TODO(student): add any extra params you need here
+      self, x: Transform, xd: Motion, command
   ) -> jax.Array:
-    # TODO(student): Impliment this function. It should return the angular velocity tracking reward. 
-    # it should be computed as exp(-delta^2/sigma) where delta is L2 error between the commanded and actual angular velocity about the z axis
-    # and sigma is defined in the reward config. Feel free to add extra parameters to this function as needed. 
-    # NOTE: The commmands are defined in the BODY frame... make sure you're comparing apples to apples!
-    # HINT: Look at the other reward functions for inspiration!
-      
-    # Tracking of angular velocity commands (yaw)
-    return None
+    
+    # Get ANGULAR velocity vec
+    body_vel = math.rotate(xd.ang[0], math.quat_inv(x.rot[0]))
+
+    # Calculate yaw tracking error
+    tracking_error = jp.abs(body_vel[2] - command[2])
+
+    return jp.exp(-jp.square(tracking_error) / self.reward_config.rewards.tracking_sigma)
   
   def _reward_lin_vel_z(self, xd: Motion) -> jax.Array:
     # Penalize z axis base linear velocity
