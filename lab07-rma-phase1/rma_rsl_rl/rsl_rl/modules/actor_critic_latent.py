@@ -26,9 +26,14 @@ class MLPEncode(nn.Module):
         # priviliged environment observations to a latent dimension defined in self.env_latent_dim. 
         # Use hard-coded hidden layer sizes of [256, 128] and the activation function defined in actionvation_fn
         
-        self.priv_encoder =  nn.Sequential(*[
-                                    #TODO(student)
-                                    ])
+        self.priv_encoder =  nn.Sequential(
+            nn.Linear(self.priv_obs_dim, 256),
+            actionvation_fn.__class__(),
+            nn.Linear(256, 128),
+            actionvation_fn.__class__(),
+            nn.Linear(128, self.env_latent_dim),
+            *( [output_activation_fn.__class__()] if output_activation_fn is not None else [] )
+        )
         
         ## END TODO
         
@@ -39,6 +44,19 @@ class MLPEncode(nn.Module):
         # so update based on output_size and output_activation_fn accordingly
         # creating the action encoder
 
+        layers = []
+        input_dim = self.base_obs_dim + self.env_latent_dim
+
+        for hidden_dim in shape:
+            layers.append(nn.Linear(input_dim, hidden_dim))
+            layers.append(actionvation_fn.__class__())
+            input_dim = hidden_dim
+
+        layers.append(nn.Linear(input_dim, output_size))
+        if output_activation_fn is not None:
+            layers.append(output_activation_fn.__class__())
+
+        self.action_mlp = nn.Sequential(*layers)
         
         # END TODO
 
@@ -62,7 +80,11 @@ class MLPEncode(nn.Module):
         #TODO(student): Implement the forward pass.
         # HINT: self.base_obs_dim may be useful
         
-        out = x
+        base_obs = x[:, :self.base_obs_dim]
+        priv_obs = x[:, self.base_obs_dim:]
+        env_latent = self.priv_encoder(priv_obs)
+        combined = torch.cat((base_obs, env_latent), dim=-1)
+        out = self.action_mlp(combined)
         
         # END TODO
         return out 
@@ -78,12 +100,12 @@ class MLPEncode(nn.Module):
         
         # TODO(student): Implement this function to compute the latent
         
-        priv_obs = x[:, self.base_obs_dim:] # (b, 6)
-        prop_latent = self.priv_encoder(priv_obs) # (b, 8)
+        priv_obs = x[:, self.base_obs_dim:]
+        env_latent = self.priv_encoder(priv_obs)
         
         # END TODO
         
-        return prop_latent
+        return env_latent
         
 
 class MLPEncode_wrap(nn.Module):

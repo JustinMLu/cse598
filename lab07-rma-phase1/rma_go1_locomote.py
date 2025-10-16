@@ -235,12 +235,25 @@ class LocomotionRMAEnv(go1_base.Go1Env):
     #    6. the last action (12, )
     # Don't worry about adding small gaussian noise to these measurement in this lab.
     # HINT: Many of these quantities are already implemented as functions in the parent class: `go1_base.Go1Env`
-    state = jp.hstack([
-        # Fill this in 
-    ])
 
-    FLOOR_GEOM_ID = 0
-    TORSO_BODY_ID = 1
+    base_lin_vel = jp.asarray(self.get_local_linvel(data))
+    base_ang_vel = jp.asarray(self.get_gyro(data))
+    projected_gravity = jp.asarray(self.get_gravity(data))
+    dof_pos = jp.asarray(data.qpos[7:] - self._default_pose)
+    dof_vel = jp.asarray(data.qvel[6:])
+    last_action = jp.asarray(info["last_act"])
+
+    state_parts = (
+        base_lin_vel.reshape(-1),
+        base_ang_vel.reshape(-1),
+        projected_gravity.reshape(-1),
+        dof_pos.reshape(-1),
+        dof_vel.reshape(-1),
+        last_action.reshape(-1),
+    )
+    state = jp.concatenate(state_parts, axis=0)
+
+    FLOOR_GEOM_ID = self._floor_geom_id
     # TODO(student): Implement the agent privileged state. It's up to you to decide
     # exactly what information to put in the privileged environment state. Try to make it at least 6 dims though
     # I personally keep it simple by including:
@@ -249,9 +262,18 @@ class LocomotionRMAEnv(go1_base.Go1Env):
     #   3. The info["last_contact"] binary vector for each foot (4, )
     # HINT: You can refer to the go1_randomizer (https://github.com/google-deepmind/mujoco_playground/blob/main/mujoco_playground/_src/locomotion/go1/randomize.py)
     # to remember how to get these quantities.     
-    privileged_state = jp.hstack([
-        # Fill this in 
-    ])
+    floor_friction = jp.asarray(self.mjx_model.geom_friction[FLOOR_GEOM_ID])
+    torso_mass = jp.asarray([self._torso_mass])
+    last_contact = jp.asarray(info["last_contact"], dtype=jp.float32)
+
+    privileged_state = jp.concatenate(
+        (
+            floor_friction.reshape(-1),
+            torso_mass.reshape(-1),
+            last_contact.reshape(-1),
+        ),
+        axis=0,
+    )
 
     return {
         "state": state,

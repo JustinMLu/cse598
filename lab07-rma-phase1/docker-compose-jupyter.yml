@@ -5,7 +5,7 @@ services:
     runtime: nvidia
     build: 
       context: .
-      dockerfile: Dockerfile # change to Dockerfile.blackwell for Blackwell gpus
+      dockerfile: Dockerfile.blackwell # change to Dockerfile.blackwell for Blackwell gpus
     
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
@@ -22,7 +22,7 @@ services:
       - type: tmpfs
         target: /tmp
         tmpfs:
-          size: 2G
+          size: 16G # come on man
     
     ports:
       - "8888:8888" # Map host port to container port
